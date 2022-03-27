@@ -51,10 +51,17 @@ const getMessages = async (param: {
 
 const createMessage = async (param: {
   conversationId: string;
+  receiverId: string;
   text: string;
 }): Promise<ApiResponse> => {
   try {
-    const response: ApiResponse = await axiosClient.post('/messages', param);
+    const response: ApiResponse = await axiosClient.post(
+      `/messages/conversation/${param.conversationId}`,
+      {
+        receiverId: param.receiverId,
+        text: param.text,
+      },
+    );
     return response;
   } catch (error: any) {
     return {

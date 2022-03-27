@@ -4,7 +4,7 @@ import {storage} from '../storage/storage';
 import {storageFactory} from '../storage/storageFactory';
 
 const axiosClient = axios.create({
-  baseURL: 'http://192.168.1.30:5000/api',
+  baseURL: 'https://clone-messengerr.herokuapp.com/api',
   headers: {
     'content-type': 'application/json',
   },
@@ -13,11 +13,11 @@ const axiosClient = axios.create({
 
 let refreshTokenRequest: any = null;
 
-export const refreshTokenFn = async () => {
+const refreshTokenFn = async () => {
   const refreshToken = await storage.getData(storageFactory.refreshToken.key);
   try {
     const response = await axios.post(
-      'http://192.168.1.30:5000/api/auth/refresh-token',
+      'https://clone-messengerr.herokuapp.com/api/auth/refresh-token',
       {refreshToken},
       {
         headers: {'content-type': 'application/json'},
@@ -35,9 +35,9 @@ export const refreshTokenFn = async () => {
 axiosClient.interceptors.request.use(
   async function (config) {
     // Do something before request is sent
-    if (config.headers?.Authorization) {
-      const accessToken =
-        config.headers.Authorization.toString().split('Bearer ')[1];
+    const defaultHeader: any = config.headers?.common;
+    if (defaultHeader?.Authorization) {
+      const accessToken = defaultHeader.Authorization.split('Bearer ')[1];
       const decoded: any = jwt_decode(accessToken);
       const exp = decoded.exp;
       if (Date.now() > exp * 1000) {
@@ -48,7 +48,7 @@ axiosClient.interceptors.request.use(
         const newAccessToken = await refreshTokenRequest;
         refreshTokenRequest = null;
 
-        config.headers.Authorization = 'Bearer ' + newAccessToken;
+        defaultHeader.Authorization = 'Bearer ' + newAccessToken;
       }
     }
     return config;
@@ -74,6 +74,7 @@ axiosClient.interceptors.response.use(
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
     if (error?.response?.data) {
+      console.log(error.response.data.message);
       return error.response.data;
     }
 

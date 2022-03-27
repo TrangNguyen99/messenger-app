@@ -15,17 +15,13 @@ import styled from 'styled-components/native';
 import * as yup from 'yup';
 import {useAppDispatch} from '../../../app/hook';
 import LoadingModal from '../../../component/common/LoadingModal';
+import FlexView from '../../../component/util/FlexView';
 import SizedBox from '../../../component/util/SizedBox';
 import {AuthParamList} from '../../../navigation/type';
 import {fontPixel, heightPixel, widthPixel} from '../../../scale/scale';
 import {authAction} from '../slice/authSlice';
 
 const Container = styled(SafeAreaView)`
-  background: #fff;
-  flex: 1;
-`;
-
-const ContentContainer = styled.View`
   background: #fff;
   flex: 1;
 `;
@@ -113,7 +109,7 @@ const RegisterScreen = ({navigation}: Props) => {
   return (
     <Container>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <ContentContainer>
+      <FlexView bcw fo>
         <KeyboardAwareScrollView>
           <SizedBox height={heightPixel(50)} />
           <Controller
@@ -127,6 +123,7 @@ const RegisterScreen = ({navigation}: Props) => {
                   onChangeText={onChange}
                   value={value}
                   placeholder="Tên tài khoản"
+                  placeholderTextColor="#9e9e9e"
                 />
               </TextInputContainer>
             )}
@@ -143,6 +140,7 @@ const RegisterScreen = ({navigation}: Props) => {
                   onChangeText={onChange}
                   value={value}
                   placeholder="Email"
+                  placeholderTextColor="#9e9e9e"
                 />
               </TextInputContainer>
             )}
@@ -159,6 +157,7 @@ const RegisterScreen = ({navigation}: Props) => {
                   onChangeText={onChange}
                   value={value}
                   placeholder="Mật khẩu"
+                  placeholderTextColor="#9e9e9e"
                   secureTextEntry={true}
                 />
               </TextInputContainer>
@@ -173,7 +172,7 @@ const RegisterScreen = ({navigation}: Props) => {
             <TextLoginButton>Đã có tài khoản?</TextLoginButton>
           </LoginButton>
         </KeyboardAwareScrollView>
-      </ContentContainer>
+      </FlexView>
       <LoadingModal isVisible={loading} />
     </Container>
   );

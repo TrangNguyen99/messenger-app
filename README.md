@@ -1,3 +1,9 @@
+# Api server/doc: [here](https://clone-messengerr.herokuapp.com)
+
+# Backend source: [here](https://github.com/TrangNguyen99/messenger-server)
+
+# Setup
+
 ## Data
 
 ```bash

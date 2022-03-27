@@ -3,19 +3,15 @@ import {StatusBar} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styled from 'styled-components/native';
 import {useAppDispatch, useAppSelector} from '../../../app/hook';
+import Avatar from '../../../component/common/Avatar';
 import LoadingModal from '../../../component/common/LoadingModal';
-import FlexBox from '../../../component/util/FlexBox';
+import FlexView from '../../../component/util/FlexView';
 import SizedBox from '../../../component/util/SizedBox';
 import {fontPixel, widthPixel} from '../../../scale/scale';
-import {DefaultAvatarIcon, LogoutIcon} from '../../../svg/common';
+import {LogoutIcon} from '../../../svg/common';
 import {authAction} from '../../auth/slice/authSlice';
 
 const Container = styled(SafeAreaView)`
-  background: #fff;
-  flex: 1;
-`;
-
-const ContentContainer = styled.View`
   background: #fff;
   flex: 1;
 `;
@@ -40,6 +36,7 @@ const TextLogout = styled.Text`
 
 const AccountScreen = () => {
   const name = useAppSelector(s => s.account.name);
+  const avatar = useAppSelector(s => s.account.avatar);
 
   const [loading, setLoading] = useState(false);
 
@@ -53,17 +50,17 @@ const AccountScreen = () => {
   return (
     <Container>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <ContentContainer>
-        <FlexBox ma>
-          <DefaultAvatarIcon height={widthPixel(100)} width={widthPixel(100)} />
-        </FlexBox>
+      <FlexView bcw fo>
+        <FlexView mxa>
+          <Avatar size={widthPixel(100)} avatar={avatar ? avatar : null} />
+        </FlexView>
         <TextName>{name}</TextName>
         <LogoutButton onPress={onLogout}>
           <LogoutIcon height={widthPixel(40)} width={widthPixel(40)} />
           <SizedBox width={widthPixel(4)} />
           <TextLogout>Đăng xuất</TextLogout>
         </LogoutButton>
-      </ContentContainer>
+      </FlexView>
       <LoadingModal isVisible={loading} />
     </Container>
   );

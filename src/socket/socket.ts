@@ -2,7 +2,7 @@ import {io} from 'socket.io-client';
 import {store} from '../app/store';
 import {chatAction} from '../feature/chat/slice/chatSlice';
 
-const URL = 'http://192.168.1.30:5000';
+const URL = 'https://clone-messengerr.herokuapp.com';
 const socket = io(URL, {autoConnect: false});
 
 socket.onAny((event, ...args) => {

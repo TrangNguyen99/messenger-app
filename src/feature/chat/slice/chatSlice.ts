@@ -1,15 +1,19 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import {chatApi} from '../../../api/chatApi';
-import {notifeeNotification} from '../../../notification/notifeeNotification';
 
 interface Participant {
   _id: string;
   name: string;
+  avatar: string | null;
 }
 
 interface FinalMessage {
+  _id: string;
   senderId: string;
-  text: string;
+  receiverId: string;
+  type: 'text' | 'image';
+  text: string | null;
+  image: string | null;
   updatedAt: string;
 }
 
@@ -17,23 +21,37 @@ export interface Conversation {
   _id: string;
   type: 'private' | 'group';
   participants: Participant[];
-  finalMessage: FinalMessage;
+  finalMessage: Partial<FinalMessage>;
 }
 
-interface Message {
+export interface Message {
   _id: string;
   senderId: string;
-  text: string;
+  receiverId: string | null;
+  type: 'text' | 'image';
+  text: string | null;
+  image: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Partner {
+  _id: string;
+  name: string;
+  avatar: string | null;
 }
 
 interface ChatState {
   conversations: Conversation[];
-  focusConversationId: string;
+  focusConversationId: string | null;
+  partner: Partial<Partner>;
   messages: Message[];
 }
 
-const initialState: Partial<ChatState> = {
+const initialState: ChatState = {
   conversations: [],
+  focusConversationId: null,
+  partner: {},
   messages: [],
 };
 
@@ -52,8 +70,10 @@ const createPrivateConversation = createAsyncThunk(
 
 const getMessages = createAsyncThunk(
   'chat/getMessages',
-  async (params: any) => {
-    const result = await chatApi.getMessages(params);
+  async (_, thunkApi) => {
+    const rootState: any = thunkApi.getState();
+    const conversationId = rootState.chat.focusConversationId;
+    const result = await chatApi.getMessages({conversationId});
     return result;
   },
 );
@@ -61,26 +81,24 @@ const getMessages = createAsyncThunk(
 const createMessage = createAsyncThunk(
   'chat/createMessage',
   async (params: any, thunkApi) => {
+    const rootState: any = thunkApi.getState();
+    const conversationId = rootState.chat.focusConversationId;
+    const receiverId = rootState.chat.partner._id;
     const result = await chatApi.createMessage({
-      conversationId: params.conversationId,
+      conversationId,
+      receiverId,
       text: params.text,
     });
 
-    const rootState: any = thunkApi.getState();
-    const extraData = [
-      {
-        _id: rootState.account._id,
-        name: rootState.account.name,
-      },
-      {
-        _id: params.partnerId,
-        name: params.partnerName,
-      },
+    const account = rootState.account;
+    const participants = [
+      {_id: account._id, name: account.name, avatar: account.avatar},
+      rootState.chat.partner,
     ];
 
     return {
       ...result,
-      extraData,
+      extraData: {participants},
     };
   },
 );
@@ -88,51 +106,17 @@ const createMessage = createAsyncThunk(
 const receiveMessage = createAsyncThunk(
   'chat/receiveMessage',
   async (params: any, thunkApi) => {
-    const {from, to, message} = params;
-
     const rootState: any = thunkApi.getState();
-
-    const conversationId = to.conversationId;
+    const account = rootState.account;
     const participants = [
-      {
-        _id: rootState.account._id,
-        name: rootState.account.name,
-      },
-      {
-        _id: from.userId,
-        name: from.name,
-      },
+      {_id: account._id, name: account.name, avatar: account.avatar},
+      {...params.from},
     ];
-    const finalMessage = {
-      senderId: from.userId,
-      text: message.text,
-      updatedAt: message.updatedAt,
-    };
-
-    if (rootState.chat.focusConversationId !== conversationId) {
-      await notifeeNotification.displayNotification({
-        from: {
-          userId: from.userId,
-          name: from.name,
-        },
-        to: {
-          conversationId,
-        },
-        message: {
-          text: message.text,
-        },
-      });
-    }
 
     return {
+      conversationId: params.to.conversationId,
       participants,
-      conversationId,
-      finalMessage,
-      message: {
-        _id: message._id,
-        senderId: from.userId,
-        text: message.text,
-      },
+      message: params.message,
     };
   },
 );
@@ -141,17 +125,24 @@ const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
-    joinConversation: (state, action) => {
+    setPartner: (state, action) => {
+      state.partner._id = action.payload._id;
+      state.partner.name = action.payload.name;
+      state.partner.avatar = action.payload.avatar;
+    },
+    setConversationId: (state, action) => {
       state.focusConversationId = action.payload.conversationId;
     },
     leaveConversation: state => {
-      state.focusConversationId = undefined;
-      state.messages?.splice(0, state.messages.length);
+      state.focusConversationId = null;
+      state.partner = {};
+      state.messages = [];
     },
     clearChatState: state => {
-      state.conversations?.splice(0, state.conversations.length);
-      state.focusConversationId = undefined;
-      state.messages?.splice(0, state.messages.length);
+      state.conversations = [];
+      state.focusConversationId = null;
+      state.partner = {};
+      state.messages = [];
     },
   },
   extraReducers: builder => {
@@ -174,81 +165,53 @@ const chatSlice = createSlice({
       })
       .addCase(createMessage.fulfilled, (state, action) => {
         if (action.payload.type === 'success') {
-          state.messages?.unshift(action.payload.data);
+          state.messages.unshift(action.payload.data);
 
-          const conversationId = state.focusConversationId;
-          if (!conversationId) {
-            return;
-          }
-          const conversationIndex = state.conversations?.findIndex(
-            c => c._id === conversationId,
+          const conversationIndex = state.conversations.findIndex(
+            conversation => conversation._id === state.focusConversationId,
           );
-          if (conversationIndex === undefined) {
-            return;
-          }
-
           if (conversationIndex === -1) {
-            state.conversations?.unshift({
-              _id: conversationId,
+            const newConversation: Conversation = {
+              _id: `${state.focusConversationId}`,
               type: 'private',
-              participants: action.payload.extraData,
-              finalMessage: {
-                senderId: action.payload.data.senderId,
-                text: action.payload.data.text,
-                updatedAt: action.payload.data.updatedAt,
-              },
-            });
+              participants: action.payload.extraData.participants,
+              finalMessage: action.payload.data,
+            };
+            state.conversations.unshift(newConversation);
           } else {
-            const conversation = state.conversations?.splice(
+            const conversation = state.conversations.splice(
               conversationIndex,
               1,
             )[0];
-            if (conversation) {
-              conversation.finalMessage.senderId = action.payload.data.senderId;
-              conversation.finalMessage.text = action.payload.data.text;
-              conversation.finalMessage.updatedAt =
-                action.payload.data.updatedAt;
-
-              state.conversations?.unshift(conversation);
-            }
+            conversation.finalMessage = action.payload.data;
+            state.conversations.unshift(conversation);
           }
         }
       })
       .addCase(receiveMessage.fulfilled, (state, action) => {
         const conversationId = action.payload.conversationId;
-
-        const conversationIndex = state.conversations?.findIndex(
-          c => c._id === conversationId,
+        const conversationIndex = state.conversations.findIndex(
+          conversation => conversation._id === conversationId,
         );
-        if (conversationIndex === undefined) {
-          return;
-        }
-
         if (conversationIndex === -1) {
-          state.conversations?.unshift({
+          const newConversation: Conversation = {
             _id: conversationId,
             type: 'private',
             participants: action.payload.participants,
-            finalMessage: action.payload.finalMessage,
-          });
+            finalMessage: action.payload.message,
+          };
+          state.conversations.unshift(newConversation);
         } else {
-          const conversation = state.conversations?.splice(
+          const conversation = state.conversations.splice(
             conversationIndex,
             1,
           )[0];
-          if (conversation) {
-            conversation.finalMessage.senderId =
-              action.payload.finalMessage.senderId;
-            conversation.finalMessage.text = action.payload.finalMessage.text;
-            conversation.finalMessage.updatedAt =
-              action.payload.finalMessage.updatedAt;
-
-            state.conversations?.unshift(conversation);
-          }
+          conversation.finalMessage = action.payload.message;
+          state.conversations.unshift(conversation);
         }
 
         if (state.focusConversationId === conversationId) {
-          state.messages?.unshift(action.payload.message);
+          state.messages.unshift(action.payload.message);
         }
       });
   },

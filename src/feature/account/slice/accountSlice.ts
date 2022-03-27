@@ -4,6 +4,7 @@ import {userApi} from '../../../api/userApi';
 interface AccountState {
   _id: string;
   name: string;
+  avatar: string | null;
 }
 
 const initialState: Partial<AccountState> = {};
@@ -20,6 +21,7 @@ const accountSlice = createSlice({
     clearAccountState: state => {
       state._id = undefined;
       state.name = undefined;
+      state.avatar = undefined;
     },
   },
   extraReducers: builder => {
@@ -27,6 +29,7 @@ const accountSlice = createSlice({
       if (action.payload.type === 'success') {
         state._id = action.payload.data._id;
         state.name = action.payload.data.name;
+        state.avatar = action.payload.data.avatar;
       }
     });
   },

@@ -20,13 +20,9 @@ import {AuthParamList} from '../../../navigation/type';
 import {fontPixel, heightPixel, widthPixel} from '../../../scale/scale';
 import SizedBox from '../../../component/util/SizedBox';
 import LoadingModal from '../../../component/common/LoadingModal';
+import FlexView from '../../../component/util/FlexView';
 
 const Container = styled(SafeAreaView)`
-  background: #fff;
-  flex: 1;
-`;
-
-const ContentContainer = styled.View`
   background: #fff;
   flex: 1;
 `;
@@ -121,7 +117,7 @@ const LoginScreen = ({navigation}: Props) => {
   return (
     <Container>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <ContentContainer>
+      <FlexView bcw fo>
         <KeyboardAwareScrollView>
           <SizedBox height={heightPixel(50)} />
           <Controller
@@ -135,6 +131,7 @@ const LoginScreen = ({navigation}: Props) => {
                   onChangeText={onChange}
                   value={value}
                   placeholder="Email"
+                  placeholderTextColor="#9e9e9e"
                 />
               </TextInputContainer>
             )}
@@ -151,6 +148,7 @@ const LoginScreen = ({navigation}: Props) => {
                   onChangeText={onChange}
                   value={value}
                   placeholder="Mật khẩu"
+                  placeholderTextColor="#9e9e9e"
                   secureTextEntry={true}
                 />
               </TextInputContainer>
@@ -165,7 +163,7 @@ const LoginScreen = ({navigation}: Props) => {
             <TextRegisterButton>Tạo tài khoản mới</TextRegisterButton>
           </RegisterButton>
         </KeyboardAwareScrollView>
-      </ContentContainer>
+      </FlexView>
       <LoadingModal isVisible={loading} />
     </Container>
   );

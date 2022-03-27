@@ -25,12 +25,10 @@ const checkAuthState = createAsyncThunk(
     if (result.type === 'success') {
       await thunkApi.dispatch(accountAction.getMe());
 
-      const socketAuth = jwt.decodeRefreshToken(refreshToken);
-      socket.auth = socketAuth;
+      socket.auth = jwt.decodeRefreshToken(refreshToken);
       socket.connect();
 
       const fcmToken = await messaging().getToken();
-      console.log(fcmToken);
       await userApi.updateFcmToken({fcmToken});
     }
     return result;
@@ -51,8 +49,7 @@ const login = createAsyncThunk('auth/login', async (params: any, thunkApi) => {
     );
     await thunkApi.dispatch(accountAction.getMe());
 
-    const socketAuth = jwt.decodeRefreshToken(result.data.refreshToken);
-    socket.auth = socketAuth;
+    socket.auth = jwt.decodeRefreshToken(result.data.refreshToken);
     socket.connect();
 
     const fcmToken = await messaging().getToken();

@@ -2,17 +2,13 @@ import React from 'react';
 import styled from 'styled-components/native';
 import {useAppSelector} from '../../../../app/hook';
 import SizedBox from '../../../../component/util/SizedBox';
-import {heightPixel, widthPixel, fontPixel} from '../../../../scale/scale';
-
-interface Props {
-  senderId: string;
-  text: string;
-}
+import {fontPixel, heightPixel, widthPixel} from '../../../../scale/scale';
+import {Message} from '../../slice/chatSlice';
 
 const MyMessageContainer = styled.View`
   flex-direction: row;
   justify-content: flex-end;
-  margin: ${heightPixel(8)}px 0;
+  padding: ${heightPixel(8)}px 0;
 `;
 
 const MyMessageTextContainer = styled.View`
@@ -29,7 +25,7 @@ const TextMyMessage = styled.Text`
 
 const PartnerMessageContainer = styled.View`
   flex-direction: row;
-  margin: ${heightPixel(8)}px 0;
+  padding: ${heightPixel(8)}px 0;
 `;
 
 const PartnerMessageTextContainer = styled.View`
@@ -44,7 +40,7 @@ const TextPartnerMessage = styled.Text`
   font-size: ${fontPixel(16)}px;
 `;
 
-const MessageComponent = ({senderId, text}: Props) => {
+const MessageComponent = ({senderId, text}: Message) => {
   const userId = useAppSelector(s => s.account._id);
 
   if (senderId === userId) {

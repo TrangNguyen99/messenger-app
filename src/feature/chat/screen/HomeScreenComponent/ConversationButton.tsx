@@ -2,21 +2,27 @@ import {CommonActions, useNavigation} from '@react-navigation/native';
 import React from 'react';
 import styled from 'styled-components/native';
 import {useAppSelector} from '../../../../app/hook';
-import FlexBox from '../../../../component/util/FlexBox';
+import Avatar from '../../../../component/common/Avatar';
+import FlexView from '../../../../component/util/FlexView';
 import SizedBox from '../../../../component/util/SizedBox';
-import {heightPixel, widthPixel} from '../../../../scale/scale';
-import {DefaultAvatarIcon} from '../../../../svg/common';
+import {fontPixel, heightPixel, widthPixel} from '../../../../scale/scale';
 import {Conversation} from '../../slice/chatSlice';
 
 const Container = styled.TouchableOpacity`
   align-items: center;
   flex-direction: row;
-  padding: ${heightPixel(8)}px ${widthPixel(12)}px;
+  padding: ${heightPixel(12)}px ${widthPixel(12)}px;
 `;
 
-const TextPartner = styled.Text``;
+const TextPartner = styled.Text`
+  color: #424242;
+  font-size: ${fontPixel(16)}px;
+`;
 
-const TextMessage = styled.Text``;
+const TextMessage = styled.Text`
+  color: #424242;
+  font-size: ${fontPixel(14)}px;
+`;
 
 const ConversationButton = ({
   _id,
@@ -39,18 +45,17 @@ const ConversationButton = ({
         onPress={() =>
           navigation.dispatch(
             CommonActions.navigate('PrivateChatScreen', {
-              partnerId: partner._id,
-              name: partner.name,
+              partner,
               conversationId: _id,
             }),
           )
         }>
-        <DefaultAvatarIcon height={widthPixel(50)} width={widthPixel(50)} />
-        <SizedBox width={widthPixel(4)} />
-        <FlexBox fo>
+        <Avatar size={widthPixel(50)} avatar={partner.avatar} />
+        <SizedBox width={widthPixel(12)} />
+        <FlexView fo>
           <TextPartner>{partner.name}</TextPartner>
-          <TextMessage>{finalMessage.text}</TextMessage>
-        </FlexBox>
+          <TextMessage numberOfLines={1}>{finalMessage.text}</TextMessage>
+        </FlexView>
       </Container>
     );
   }

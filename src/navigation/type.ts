@@ -9,7 +9,14 @@ export type MainParamList = {
   BottomTabNavigator: NavigatorScreenParams<BottomTabParamList>;
   AccountScreen: undefined;
   SearchScreen: undefined;
-  PrivateChatScreen: {partnerId: string; name: string; conversationId?: string};
+  PrivateChatScreen: {
+    partner: {
+      _id: string;
+      name: string;
+      avatar: string | null;
+    };
+    conversationId?: string;
+  };
 };
 
 export type AuthParamList = {

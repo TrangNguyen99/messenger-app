@@ -11,23 +11,16 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styled from 'styled-components/native';
 import {useAppDispatch, useAppSelector} from '../../../app/hook';
+import Avatar from '../../../component/common/Avatar';
+import FlexView from '../../../component/util/FlexView';
 import SizedBox from '../../../component/util/SizedBox';
 import {MainParamList} from '../../../navigation/type';
 import {fontPixel, heightPixel, widthPixel} from '../../../scale/scale';
-import {
-  BlueBackIcon,
-  DefaultAvatarIcon,
-  SendMessageIcon,
-} from '../../../svg/common';
+import {BlueBackIcon, SendMessageIcon} from '../../../svg/common';
 import {chatAction} from '../slice/chatSlice';
 import MessageComponent from './PrivateChatScreenComponent/MessageComponent';
 
 const Container = styled(SafeAreaView)`
-  background: #fff;
-  flex: 1;
-`;
-
-const ContentContainer = styled.View`
   background: #fff;
   flex: 1;
 `;
@@ -45,19 +38,6 @@ const TextName = styled.Text`
   font-weight: bold;
 `;
 
-const ChatInputContainer = styled.View`
-  align-items: center;
-  flex-direction: row;
-  padding: ${heightPixel(8)}px ${widthPixel(12)}px;
-`;
-
-const TextInputContainer = styled.View`
-  background: #f5f5f5;
-  border-radius: ${widthPixel(20)}px;
-  flex: 1;
-  padding: ${heightPixel(8)}px ${widthPixel(20)}px;
-`;
-
 const TextInput = styled.TextInput`
   color: #000;
   font-size: ${fontPixel(18)}px;
@@ -68,6 +48,7 @@ type Props = NativeStackScreenProps<MainParamList, 'PrivateChatScreen'>;
 
 const PrivateChatScreen = ({navigation, route}: Props) => {
   const conversationId = useAppSelector(s => s.chat.focusConversationId);
+  const partner = useAppSelector(s => s.chat.partner);
   const messages = useAppSelector(s => s.chat.messages);
 
   const [text, setText] = useState('');
@@ -75,14 +56,11 @@ const PrivateChatScreen = ({navigation, route}: Props) => {
   const dispatch = useAppDispatch();
 
   const sendMessage = async () => {
-    const resultAction = await dispatch(
-      chatAction.createMessage({
-        conversationId,
-        text,
-        partnerId: route.params.partnerId,
-        partnerName: route.params.name,
-      }),
-    );
+    if (!text) {
+      return;
+    }
+
+    const resultAction = await dispatch(chatAction.createMessage({text}));
     const result = unwrapResult(resultAction);
     if (result.type === 'success') {
       setText('');
@@ -92,16 +70,18 @@ const PrivateChatScreen = ({navigation, route}: Props) => {
   };
 
   useEffect(() => {
+    dispatch(chatAction.setPartner(route.params.partner));
+
     if (route.params.conversationId) {
       dispatch(
-        chatAction.joinConversation({
+        chatAction.setConversationId({
           conversationId: route.params.conversationId,
         }),
       );
     } else {
       dispatch(
         chatAction.createPrivateConversation({
-          partnerId: route.params.partnerId,
+          partnerId: route.params.partner._id,
         }),
       );
     }
@@ -115,7 +95,7 @@ const PrivateChatScreen = ({navigation, route}: Props) => {
   useEffect(() => {
     (async () => {
       if (conversationId) {
-        await dispatch(chatAction.getMessages({conversationId}));
+        await dispatch(chatAction.getMessages());
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,39 +104,45 @@ const PrivateChatScreen = ({navigation, route}: Props) => {
   return (
     <Container>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <ContentContainer>
+      <FlexView bcw fo>
         <Header style={styles.shadow}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <BlueBackIcon height={widthPixel(20)} width={widthPixel(20)} />
           </TouchableOpacity>
           <SizedBox width={widthPixel(10)} />
-          <DefaultAvatarIcon height={widthPixel(40)} width={widthPixel(40)} />
+          <Avatar
+            size={widthPixel(40)}
+            avatar={partner.avatar ? partner.avatar : null}
+          />
           <SizedBox width={widthPixel(10)} />
-          <TextName>{route.params.name}</TextName>
+          <TextName>{partner.name}</TextName>
         </Header>
         <FlatList
           data={messages}
           keyExtractor={(_, index) => index.toString()}
-          renderItem={({item}) => (
-            <MessageComponent senderId={item.senderId} text={item.text} />
-          )}
           inverted={true}
           showsVerticalScrollIndicator={false}
+          renderItem={({item}) => <MessageComponent {...item} />}
         />
-        <ChatInputContainer>
-          <TextInputContainer>
+        <FlexView aic bcw fdr ph={widthPixel(12)} pv={heightPixel(8)}>
+          <FlexView
+            bc="#f5f5f5"
+            br={widthPixel(20)}
+            fo
+            ph={widthPixel(20)}
+            pv={heightPixel(8)}>
             <TextInput
               placeholder="Aa"
               value={text}
               onChangeText={v => setText(v)}
             />
-          </TextInputContainer>
+          </FlexView>
           <SizedBox width={widthPixel(15)} />
           <TouchableOpacity onPress={sendMessage}>
             <SendMessageIcon height={widthPixel(25)} width={widthPixel(25)} />
           </TouchableOpacity>
-        </ChatInputContainer>
-      </ContentContainer>
+        </FlexView>
+      </FlexView>
     </Container>
   );
 };

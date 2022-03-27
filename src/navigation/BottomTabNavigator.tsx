@@ -35,8 +35,8 @@ const BottomTabNavigator = () => {
               <ChatTabIcon height={size} width={size} />
             );
           },
-          header: () => {
-            return <HomeScreenHeader />;
+          header: ({options}) => {
+            return <HomeScreenHeader title={`${options.title}`} />;
           },
         }}
       />

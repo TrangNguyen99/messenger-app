@@ -4,17 +4,13 @@ import {FlatList, StatusBar} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styled from 'styled-components/native';
 import {userApi} from '../../../api/userApi';
+import Avatar from '../../../component/common/Avatar';
+import FlexView from '../../../component/util/FlexView';
 import SizedBox from '../../../component/util/SizedBox';
 import {MainParamList} from '../../../navigation/type';
 import {fontPixel, heightPixel, widthPixel} from '../../../scale/scale';
-import {DefaultAvatarIcon} from '../../../svg/common';
 
 const Container = styled(SafeAreaView)`
-  background: #fff;
-  flex: 1;
-`;
-
-const ContentContainer = styled.View`
   background: #fff;
   flex: 1;
 `;
@@ -34,11 +30,17 @@ const TextOtherUser = styled.Text`
 type Props = NativeStackScreenProps<MainParamList, 'SearchScreen'>;
 
 const SearchScreen = ({navigation}: Props) => {
-  const [otherUsers, setOtherUsers] = useState<any[]>([]);
+  const [otherUsers, setOtherUsers] = useState<
+    {
+      _id: string;
+      name: string;
+      avatar: string | null;
+    }[]
+  >([]);
 
   useEffect(() => {
     (async () => {
-      const response = await userApi.getAllOtherUsers();
+      const response = await userApi.getOthers();
       if (response.type === 'success') {
         setOtherUsers(response.data);
       }
@@ -48,7 +50,7 @@ const SearchScreen = ({navigation}: Props) => {
   return (
     <Container>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <ContentContainer>
+      <FlexView bcw fo>
         <FlatList
           data={otherUsers}
           keyExtractor={(_, index) => index.toString()}
@@ -56,20 +58,20 @@ const SearchScreen = ({navigation}: Props) => {
             <OtherUserButton
               onPress={() =>
                 navigation.navigate('PrivateChatScreen', {
-                  partnerId: item._id,
-                  name: item.name,
+                  partner: {
+                    _id: item._id,
+                    name: item.name,
+                    avatar: item.avatar,
+                  },
                 })
               }>
-              <DefaultAvatarIcon
-                height={widthPixel(40)}
-                width={widthPixel(40)}
-              />
+              <Avatar size={widthPixel(40)} avatar={item.avatar} />
               <SizedBox width={widthPixel(12)} />
               <TextOtherUser>{item.name}</TextOtherUser>
             </OtherUserButton>
           )}
         />
-      </ContentContainer>
+      </FlexView>
     </Container>
   );
 };

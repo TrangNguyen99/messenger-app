@@ -14,10 +14,23 @@ const getMe = async (): Promise<ApiResponse> => {
   }
 };
 
-const getAllOtherUsers = async (): Promise<ApiResponse> => {
+const getOthers = async (): Promise<ApiResponse> => {
+  try {
+    const response: ApiResponse = await axiosClient.get('/users/others');
+    return response;
+  } catch (error: any) {
+    return {
+      type: 'error',
+      message: error.message,
+      data: null,
+    };
+  }
+};
+
+const getPublicUser = async (param: {userId: string}): Promise<ApiResponse> => {
   try {
     const response: ApiResponse = await axiosClient.get(
-      '/users/get-all-other-users',
+      `/users/public/${param.userId}`,
     );
     return response;
   } catch (error: any) {
@@ -33,7 +46,7 @@ const updateFcmToken = async (param: {
   fcmToken: string;
 }): Promise<ApiResponse> => {
   try {
-    const response: ApiResponse = await axiosClient.post('/users/fcm', param);
+    const response: ApiResponse = await axiosClient.patch('/users/fcm', param);
     return response;
   } catch (error: any) {
     return {
@@ -44,4 +57,4 @@ const updateFcmToken = async (param: {
   }
 };
 
-export const userApi = {getMe, getAllOtherUsers, updateFcmToken};
+export const userApi = {getMe, getOthers, getPublicUser, updateFcmToken};

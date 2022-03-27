@@ -2,14 +2,23 @@ import notifee, {AndroidColor} from '@notifee/react-native';
 
 const displayNotification = async (param: {
   from: {
-    userId: string;
+    _id: string;
     name: string;
+    avatar: string | null;
   };
   to: {
+    partner: {
+      _id: string;
+    };
     conversationId: string;
   };
   message: {
-    text: string;
+    _id: string;
+    senderId: string;
+    receiverId: string;
+    type: 'text' | 'image';
+    text: string | null;
+    image: string | null;
   };
 }) => {
   await notifee.deleteChannel('default');
@@ -23,12 +32,7 @@ const displayNotification = async (param: {
 
   await notifee.displayNotification({
     title: param.from.name,
-    body: param.message.text,
-    data: {
-      partnerId: param.from.userId,
-      name: param.from.name,
-      conversationId: param.to.conversationId,
-    },
+    body: `${param.message.text}`,
     android: {
       channelId,
       smallIcon: 'ic_notifee_small_icon',
